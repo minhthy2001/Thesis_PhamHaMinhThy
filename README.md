@@ -19,7 +19,11 @@ The purpose of this thesis is to build a secure file sharing system based on the
 - `README.md`: README file.
 - `.gitignore`: Gitignore file.
 
-## Instruction
+## Instructions
+### Prerequisites
+- GMP Library: [GMP Library - Downloads](https://gmplib.org/)
+- PBC Library: [PBC Library - Downloads](https://crypto.stanford.edu/pbc/download.html)
+### System Setup
 First, make sure we have a plaintext file `input.txt`.
 
 To compile the code, open the terminal and run the below commands:
