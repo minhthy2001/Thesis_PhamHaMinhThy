@@ -1,18 +1,3 @@
-/*
-RS-IBE Version 8
-Applying loops to simplify code
-Creating funcs to generalize code
-Algorithm to find elements in To and Path
-Using symtab to store values
-Using l
-Decrypt returns the correct value
-Implementing CTUpdate and Revoke
-Splitting initial parameters to different structs (public & private)
-Moving Fu and Fh calculation from Setup to FuncDef
-Compute CTUpdate automatically
-Integrating SHA-256 file encryption/decryption
-*/
-
 #include <pbc/pbc.h>
 #include <pbc/pbc_test.h>
 #include <stdio.h>
@@ -497,12 +482,9 @@ void FuncDef(char *user, char *t, struct public_pars_type *pp, struct private_pa
         element_set_si(time[i], t_digit[i]);
     }
 
-    // init Fu
     element_init_G1(pr->Fu, pairing);
-    // init Fh
     element_init_G1(pr->Fh, pairing);
 
-    // init u_pow_id, h_pow_time
     element_init_G1(u_pow_id, pairing);
     element_init_G1(h_pow_time, pairing);
 
@@ -618,7 +600,7 @@ void KeyUpdate(struct public_pars_type *pp, struct private_pars_type *pr, char *
         {
             printf("New node\n");
             element_random(g->g_theta_0);
-            /* g_theta_1 = g2 / g_theta_0 */
+            // g_theta_1 = g2 / g_theta_0
             element_div(g->g_theta_1, pp->g2, g->g_theta_0);
 
             /*
@@ -671,18 +653,6 @@ void KeyUpdate(struct public_pars_type *pp, struct private_pars_type *pr, char *
 
 void DKGen(struct public_pars_type *pp, struct private_pars_type *pr, struct decrypt_key_type *dk, char *user, char **path_to_node, struct node *KUNodes)
 {
-    // if user is revoked, exit
-    // int i = 0;
-    // while (revokedList[i] != NULL)
-    // {
-    //     if (strcmp(user, revokedList[i]) == 0)
-    //     {
-    //         fprintf(stderr, "Error occcured. User is revoked!\n");
-    //         // exit(EXIT_FAILURE);
-    //     }
-    //     i++;
-    // }
-
     element_printf("r0 = %B\n", pp->r0);
     element_printf("r1 = %B\n", pp->r1);
 
@@ -715,12 +685,6 @@ void DKGen(struct public_pars_type *pp, struct private_pars_type *pr, struct dec
                 element_printf("%s : KU0 = %B\n", current->value, KU_theta->KU0);
                 element_printf("%s : KU1 = %B\n", current->value, KU_theta->KU1);
             }
-            // else
-            // {
-            //     fprintf(stderr, "Error occcured. User is revoked!\n");
-            //     exit(EXIT_FAILURE);
-            // }
-
             current = current->next;
         }
         current = KUNodes;
@@ -750,7 +714,6 @@ void Encrypt(struct public_pars_type *pp, struct private_pars_type *pr, struct c
     int time_period_id = (int)strtol(t, NULL, 2);
     To = findTo(time_period_id);
     element_t *bv;
-    // element_from_hash(key, buffer, byteslen);
     element_printf("M before = %B\n", key);
 
     element_t h_pow_time;
@@ -798,10 +761,8 @@ void Encrypt(struct public_pars_type *pp, struct private_pars_type *pr, struct c
     {
         printf("bv = %s\n", To[i]);
         bvlen = strlen(To[i]);
-        // printf("bvlen = %d\n", bvlen);
         bv = malloc(bvlen * sizeof(element_t));
         numCvElem = DEPTH - bvlen + 1;
-        // printf("numCvElem = %d\n", numCvElem);
         count = 0;
         for (int j = 0; j < bvlen; j++)
         {
@@ -813,8 +774,6 @@ void Encrypt(struct public_pars_type *pp, struct private_pars_type *pr, struct c
         element_printf("Cv0 = %B\n", ct->Cv.Cv0);
         for (int k = 0; k < bvlen; k++)
         {
-            // element_printf("h[%d] = %B\n", k + 1, pp->h[k + 1]);
-            // element_printf("bv[%d] = %B\n", k, bv[k]);
             element_pow_zn(h_pow_time, pp->h[k + 1], bv[k]);
             element_mul(ct->Cv.Cv0, ct->Cv.Cv0, h_pow_time);
         }
@@ -831,8 +790,6 @@ void Encrypt(struct public_pars_type *pp, struct private_pars_type *pr, struct c
 
         idxCv++;
         count++;
-        // printf("idxCv = %d\n", idxCv);
-        // printf("count = %d\n", count);
         if (count < numCvElem)
         {
             // Cv_|bv|+1
@@ -844,8 +801,6 @@ void Encrypt(struct public_pars_type *pp, struct private_pars_type *pr, struct c
             idxCv++;
             count++;
         }
-        // printf("idxCv = %d\n", idxCv);
-        // printf("count = %d\n", count);
         if (count < numCvElem)
         {
             // Cv_|bv|+2
@@ -866,7 +821,6 @@ void CTUpdate(struct public_pars_type *pp, struct private_pars_type *pr1, struct
     To_prime = findTo(time_period_id2);
     element_t *bv;
     element_t *bv_prime;
-    // element_printf("M before = %B\n", key);
 
     element_t h_pow_time;
     element_t g_pow_st, Fu_pow_st;
@@ -928,30 +882,15 @@ void CTUpdate(struct public_pars_type *pp, struct private_pars_type *pr1, struct
     // C0'
     element_mul(ct2->C0, ct->C0, e_g1g2_pow_st);
     element_printf("C0' = %B\n", ct2->C0);
-    // Verify C0'
-    // element_t e_g1g2;
-    // element_init_GT(e_g1g2, pairing);
-    // element_pairing(e_g1g2, pp->g1, pp->g2);
-    // element_pow_zn(e_g1g2, e_g1g2, s_pow);
-    // element_mul(e_g1g2, e_g1g2, key);
-    // element_printf("M*e(g1,g2)^s = %B\n", e_g1g2);
     // C1'
     element_pow_zn(g_pow_st, pp->g, pr2->st);
     element_invert(g_pow_st, g_pow_st);
     element_mul(ct2->C1, ct->C1, g_pow_st);
     element_printf("C1' = %B\n", ct2->C1);
-    // Verify C1'
-    // element_pow_zn(g_pow_st, pp->g, s_pow);
-    // element_invert(g_pow_st, g_pow_st);
-    // element_printf("g^-s = %B\n", g_pow_st);
     // C2'
     element_pow_zn(Fu_pow_st, pr1->Fu, pr2->st);
     element_mul(ct2->C2, ct->C2, Fu_pow_st);
     element_printf("C2' = %B\n", ct2->C2);
-    // Verify C2'
-    // element_set0(Fu_pow_st);
-    // element_pow_zn(Fu_pow_st, pr1->Fu, s_pow);
-    // element_printf("Fu^s = %B\n", Fu_pow_st);
 
     // Cv
     element_t C_pow;
@@ -961,12 +900,6 @@ void CTUpdate(struct public_pars_type *pp, struct private_pars_type *pr1, struct
     element_printf("Cv_values[%d] = %B\n", index, Cv_values[index]);
     element_set(ct2->Cv.Cv0, Cv_values[index]);
     element_printf("Cv = %B\n", ct2->Cv.Cv0);
-    // element_t temp1;
-    // element_init_G1(temp1, pairing);
-    // element_mul(temp1, pp->h[0], pp->h[1]);
-    // element_mul(temp1, temp1, pp->h[2]);
-    // element_pow_zn(temp1, temp1, pr2->st);
-    // element_printf("(h0h1h2)^st' = %B\n", temp1);
     int numCvElem = getNumEleCv(To, num_of_to_element(time_period_id));
     printf("numCvElem = %d\n", numCvElem);
     for (int i = index + 1; i < numCvElem; i++)
@@ -982,30 +915,15 @@ void CTUpdate(struct public_pars_type *pp, struct private_pars_type *pr1, struct
     element_t h_mul;
     element_init_G1(h_mul, pairing);
     element_set(h_mul, pp->h[0]);
-    // element_printf("pp->h[0] = %B\n", pp->h[0]);
-    // element_printf("h_mul = %B\n", h_mul);
     for (int i = 0; i < bvplen; i++)
     {
         element_pow_zn(h_pow_time, pp->h[i + 1], bv_prime[i]);
         element_mul(h_mul, h_mul, h_pow_time);
-        // element_printf("pp->h[%d] = %B\n", i+1 , pp->h[i+1]);
-        // element_printf("h_mul = %B\n", h_mul);
     }
     element_pow_zn(h_mul, h_mul, pr2->st);
-    // element_printf("h^st = %B\n", h_mul);
-    // Verify h^st
-    // element_t temp2;
-    // element_init_G1(temp2, pairing);
-    // element_mul(temp2, pp->h[0], pp->h[1]);
-    // element_mul(temp2, temp2, pp->h[2]);
-    // element_pow_zn(temp2, temp2, pr2->st);
-    // element_printf("(h0h1h2)^st' = %B\n", temp2);
 
     element_mul(ct2->Cv.Cv0, ct2->Cv.Cv0, h_mul);
     element_printf("Cv = %B\n", ct2->Cv.Cv0);
-    // Verify Cv'
-    // element_pow_zn(pr2->Fh, pr2->Fh, s_pow);
-    // element_printf("Fh^s = %B\n", pr2->Fh);
 }
 
 void Decrypt(struct cipher_type *ct, struct decrypt_key_type *dk, char *t, element_t key)
@@ -1038,8 +956,6 @@ void Decrypt(struct cipher_type *ct, struct decrypt_key_type *dk, char *t, eleme
     element_printf("temp1 = %B\n", temp1);
     element_printf("temp2 = %B\n", temp2);
 
-    // element_t M;
-    // element_init_GT(M, pairing);
     element_mul(key, temp1, temp2);
     element_printf("key after = %B\n", key);
 }
@@ -1270,13 +1186,11 @@ int main(int argc, char **argv)
     int time_digit[DEPTH];
     binStr2Digit(time_digit, time_period);
 
-
     char *time_period2;
     printf("time 2: ");
     scanf("%ms", &time_period2);
     int time_digit2[DEPTH];
     binStr2Digit(time_digit2, time_period2);
-
 
     char *user;
     printf("receiver: ");
@@ -1320,7 +1234,6 @@ int main(int argc, char **argv)
     }
     printf("\n");
 
-    
     /*
         Encrypt the file with hashed random message
     */
@@ -1328,7 +1241,7 @@ int main(int argc, char **argv)
     const char *encryptedFileName = "encrypted_output.enc";
 
     OpenSSL_add_all_algorithms();
-    
+
     encryptFile(inputFileName, encryptedFileName, sha256_output);
     printf("\n\nFile encrypted successfully.\n");
 
@@ -1418,7 +1331,6 @@ int main(int argc, char **argv)
     free(time_period);
     free(time_period2);
     free(user);
-
 
     /*
         Decrypt a file using message as the key
