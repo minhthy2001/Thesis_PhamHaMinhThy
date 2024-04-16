@@ -14,10 +14,12 @@ The purpose of this thesis is to build a secure file sharing system based on the
 - `code/`: contains the C code.
     - `input.txt`: a plaintext file that will be encrypted.
     - `rs-ibe.c`: the system's code.
-- `docs/`: contains relevant documents.
+- `thesis report/`: contains the thesis documents.
+    - `THESIS_PHAMHAMINHTHY.pdf`: the report of the thesis.
+    - `pbc-manual.pdf`: the manual of the PBC library.
 - `pbc-0.5.14/`: Pairing-Based Cryptography library version 0.5.14 used for RS-IBE.
 - `README.md`: README file.
-- `.gitignore`: Gitignore file.
+- `.gitignore`: gitignore file.
 
 ## Instructions
 ### Prerequisites
